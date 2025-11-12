@@ -107,7 +107,6 @@ export default function AilmentsListScreen() {
   return (
     <div className="container">
       <div className="header">
-        <h1>Health Tracker</h1>
       </div>
 
       {ailments.length === 0 ? (

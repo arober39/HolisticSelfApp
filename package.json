@@ -8,7 +8,10 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@launchdarkly/observability": "^0.4.9",
+    "@launchdarkly/session-replay": "^0.4.9",
     "date-fns": "^4.1.0",
+    "launchdarkly-js-client-sdk": "^3.9.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.26.0"
