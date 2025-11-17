@@ -102,7 +102,7 @@ initializeLaunchDarkly(clientSideId, user, {
 ```
 
 **Note:** For basic rage click detection, manual start is not needed. The default automatic start works perfectly.
-
+s
 ## Viewing Rage Clicks
 
 Rage clicks are automatically detected and associated with session replays. To view them:
