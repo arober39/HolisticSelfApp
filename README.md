@@ -1,3 +1,13 @@
+## Part 2: Guarded Releases (Branch: feature/part2-guarded-releases)
+
+This branch demonstrates how to:
+- Create feature flags for new features
+- Use flags to control feature rollout
+- Connect rage click detection to specific features
+- Set up Guarded Releases for monitoring
+
+See the blog post: [link to Part 2]
+
 # Holistic Self App - Health Tracker
 
 A modern web-based health tracking application for managing ailments, symptoms, medications, and dosage logs. Built with React and JavaScript, designed with a focus on privacy and local data storage.
