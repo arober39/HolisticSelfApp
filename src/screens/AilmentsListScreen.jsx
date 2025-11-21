@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { db } from '../database/database';
 import { format } from 'date-fns';
+import { getLaunchDarklyClient } from '../services/launchdarkly';
 import './ScreenStyles.css';
 
 function AilmentCard({ item, onDelete, onNavigate }) {
@@ -67,9 +68,83 @@ export default function AilmentsListScreen() {
   const navigate = useNavigate();
   const [ailments, setAilments] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showTestButton, setShowTestButton] = useState(false);
 
   useEffect(() => {
     loadAilments();
+  }, []);
+
+  useEffect(() => {
+    // Check feature flag for test rage click button
+    const checkFeatureFlag = () => {
+      const client = getLaunchDarklyClient();
+      console.log('[Feature Flag Debug] Checking flag, client available:', !!client);
+      
+      if (client) {
+        try {
+          const flagValue = client.variation('test-rage-click-button', false);
+          console.log('[Feature Flag Debug] Flag value for test-rage-click-button:', flagValue);
+          setShowTestButton(flagValue);
+        } catch (error) {
+          console.error('[Feature Flag Debug] Error checking test-rage-click-button flag:', error);
+          setShowTestButton(false);
+        }
+      } else {
+        console.log('[Feature Flag Debug] LaunchDarkly client not available yet');
+      }
+    };
+
+    // Check immediately
+    checkFeatureFlag();
+
+    // Retry mechanism - check periodically until client is ready
+    let retryCount = 0;
+    const maxRetries = 10;
+    const retryInterval = setInterval(() => {
+      const client = getLaunchDarklyClient();
+      if (client) {
+        console.log('[Feature Flag Debug] Client is now available, checking flag');
+        checkFeatureFlag();
+        clearInterval(retryInterval);
+      } else {
+        retryCount++;
+        if (retryCount >= maxRetries) {
+          console.warn('[Feature Flag Debug] LaunchDarkly client not available after', maxRetries, 'retries');
+          clearInterval(retryInterval);
+        }
+      }
+    }, 500); // Check every 500ms
+
+    // Set up listener for flag changes
+    const setupListener = () => {
+      const client = getLaunchDarklyClient();
+      if (client) {
+        console.log('[Feature Flag Debug] Setting up flag change listener');
+        client.on('change:test-rage-click-button', checkFeatureFlag);
+        // Also listen for when client becomes ready
+        client.on('ready', () => {
+          console.log('[Feature Flag Debug] LaunchDarkly client is ready, checking flag');
+          checkFeatureFlag();
+        });
+      }
+    };
+
+    // Try to set up listener immediately
+    setupListener();
+
+    // Also try to set up listener after a short delay (in case client initializes)
+    const listenerTimeout = setTimeout(setupListener, 1000);
+
+    // Cleanup listeners and intervals on unmount
+    return () => {
+      clearInterval(retryInterval);
+      clearTimeout(listenerTimeout);
+      const client = getLaunchDarklyClient();
+      if (client) {
+        client.off('change:test-rage-click-button', checkFeatureFlag);
+        client.off('ready', checkFeatureFlag);
+      }
+    };
   }, []);
 
   const loadAilments = async () => {
@@ -107,7 +182,31 @@ export default function AilmentsListScreen() {
   return (
     <div className="container">
       <div className="header">
-      </div>
+        <h1>Health Tracker</h1>
+        {showTestButton && (
+        <button
+        id="test-rage-click-button"
+        style={{
+          marginTop: '10px',
+          padding: '8px 16px',
+          backgroundColor: '#ff4444',
+          color: 'white',
+          border: 'none',
+          borderRadius: '4px',
+          cursor: 'pointer',
+          fontSize: '12px',
+        }}
+        onClick={(e) => {
+          // Intentionally does nothing - for testing rage clicks
+          e.preventDefault();
+          console.log('Test button clicked (intentionally non-functional for rage click testing)');
+        }}
+        title="Test Rage Click Detection: Click rapidly 5+ times within 2 seconds in the same spot"
+      >
+        🧪 Test Rage Click (Click Rapidly)
+      </button>
+        )}
+        </div>
 
       {ailments.length === 0 ? (
         <div className="empty-container">

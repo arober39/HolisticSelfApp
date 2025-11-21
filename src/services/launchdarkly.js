@@ -83,6 +83,32 @@ export async function initializeLaunchDarkly(
 }
 
 /**
+ * Get the LaunchDarkly client instance
+ * @returns {object|null} The LaunchDarkly client or null if not initialized
+ */
+export function getLaunchDarklyClient() {
+  return ldClient;
+}
+
+/**
+ * Check if a feature flag is enabled
+ * @param {string} flagKey - The feature flag key
+ * @param {boolean} defaultValue - Default value if client is not initialized or flag not found
+ * @returns {boolean} The flag value
+ */
+export function isFeatureFlagEnabled(flagKey, defaultValue = false) {
+  if (!ldClient || !isInitialized) {
+    return defaultValue;
+  }
+  try {
+    return ldClient.variation(flagKey, defaultValue);
+  } catch (error) {
+    console.error(`Error checking feature flag ${flagKey}:`, error);
+    return defaultValue;
+  }
+}
+
+/**
  * Note: Rage click detection is automatically handled by LaunchDarkly's session replay.
  * Configure rage click thresholds in LaunchDarkly dashboard:
  * Project Settings > Monitoring > Session settings > Rage clicks
